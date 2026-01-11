@@ -4,7 +4,9 @@ You can find all configs in the .config folder.
 
 A NixOS config will be added soon.
 
-
+## Screenshots
+<img width="1917" height="1080" alt="image" src="https://github.com/user-attachments/assets/692cf30e-4b87-4729-a453-4111ca94b8e3" />
+<img width="729" height="390" alt="image" src="https://github.com/user-attachments/assets/27ad9fbe-c246-42aa-a04f-cb212d72d572" />
 
 ## Notes
 - For fish shell to work properly you need to install these plugins
