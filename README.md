@@ -3,7 +3,8 @@
 You can find all configs in the .config folder.
 
 ## Screenshots
-<img width="1917" height="1080" alt="image" src="https://github.com/user-attachments/assets/692cf30e-4b87-4729-a453-4111ca94b8e3" />
+<img width="2557" height="1440" alt="image" src="https://github.com/user-attachments/assets/ffe6bd1f-bbf7-4aea-ac57-d86820a0c78d" />
+
 <img width="729" height="390" alt="image" src="https://github.com/user-attachments/assets/27ad9fbe-c246-42aa-a04f-cb212d72d572" />
 
 ## Notes
