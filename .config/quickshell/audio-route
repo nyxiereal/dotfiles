@@ -1,0 +1,119 @@
+#!/bin/sh
+set -eu
+
+list_routes() {
+  default_sink=$(pactl get-default-sink 2>/dev/null || true)
+
+  pactl --format=json list cards | jq -c --arg default_sink "$default_sink" '
+    [
+      .[] as $card
+      | ($card.ports // {}) | to_entries[] as $port
+      | select(($port.key | startswith("hdmi-output")) or (($port.value.type // "") == "HDMI"))
+      | ($port.value.profiles // [])[] as $profile_name
+      | select($profile_name | startswith("output:"))
+      | ($card.profiles[$profile_name]) as $profile
+      | select($profile != null)
+      | select(($profile.sinks // 0) > 0)
+      | select(($profile.available // false) == true)
+      | select(($port.value.availability // "") != "not available")
+      | ("alsa_output." + ($card.name | sub("^alsa_card\\."; "")) + "." + ($profile_name | split("+")[0] | sub("^output:"; ""))) as $sink
+      | {
+          card: $card.name,
+          cardDescription: ($card.properties["device.description"] // $card.name),
+          profile: $profile_name,
+          profileDescription: ($profile.description // $profile_name),
+          port: $port.key,
+          portDescription: ($port.value.description // $port.key),
+          monitor: ($port.value.properties["device.product.name"] // ""),
+          sink: $sink,
+          active: (($card.active_profile // "") == $profile_name),
+          currentDefault: ($default_sink == $sink),
+          label: (if (($port.value.properties["device.product.name"] // "") != "")
+            then ($port.value.properties["device.product.name"] + " / " + ($profile.description // $profile_name))
+            else (($card.properties["device.description"] // $card.name) + " / " + ($profile.description // $profile_name))
+          end)
+        }
+    ]
+    | unique_by(.card + "|" + .profile + "|" + .port)
+    | sort_by(.cardDescription, .port, .profileDescription)
+  '
+}
+
+switch_route() {
+  card=$1
+  profile=$2
+  sink=$3
+
+  playing=$(
+    playerctl -l 2>/dev/null | while IFS= read -r player; do
+      if [ "$(playerctl -p "$player" status 2>/dev/null || true)" = "Playing" ]; then
+        printf '%s\n' "$player"
+      fi
+    done
+  )
+
+  pactl set-card-profile "$card" "$profile"
+
+  i=0
+  while [ "$i" -lt 30 ]; do
+    if pactl list short sinks | cut -f2 | grep -Fx "$sink" >/dev/null; then
+      break
+    fi
+
+    i=$((i + 1))
+    sleep 0.1
+  done
+
+  pactl set-default-sink "$sink"
+  pactl list short sink-inputs | cut -f1 | while IFS= read -r input; do
+    pactl move-sink-input "$input" "$sink" 2>/dev/null || true
+  done
+
+  sleep 0.4
+  printf '%s\n' "$playing" | while IFS= read -r player; do
+    if [ -n "$player" ]; then
+      playerctl -p "$player" play 2>/dev/null || true
+    fi
+  done
+}
+
+stop_easyeffects() {
+  playing=$(
+    playerctl -l 2>/dev/null | while IFS= read -r player; do
+      if [ "$(playerctl -p "$player" status 2>/dev/null || true)" = "Playing" ]; then
+        printf '%s\n' "$player"
+      fi
+    done
+  )
+
+  pkill -x easyeffects 2>/dev/null || true
+
+  # The EasyEffects virtual sink vanishes asynchronously and may pause clients.
+  i=0
+  while pgrep -x easyeffects >/dev/null && [ "$i" -lt 30 ]; do
+    i=$((i + 1))
+    sleep 0.1
+  done
+  sleep 0.4
+  printf '%s\n' "$playing" | while IFS= read -r player; do
+    if [ -n "$player" ]; then
+      playerctl -p "$player" play 2>/dev/null || true
+    fi
+  done
+}
+
+case "${1:-}" in
+  list)
+    list_routes
+    ;;
+  switch)
+    switch_route "$2" "$3" "$4"
+    ;;
+  stop-easyeffects)
+    stop_easyeffects
+    ;;
+  *)
+    printf 'usage: %s list|switch CARD PROFILE SINK|stop-easyeffects\n' "$0" >&2
+    exit 2
+    ;;
+esac
