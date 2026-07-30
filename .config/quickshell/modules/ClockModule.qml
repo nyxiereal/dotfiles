@@ -6,6 +6,7 @@ Rectangle {
   required property var shell
   required property var barWindow
   property bool expanded: false
+  readonly property bool hovered: clockMouse.containsMouse
 
   implicitWidth: clockText.implicitWidth + barWindow.pillPadding * 2
   implicitHeight: barWindow.pillHeight
@@ -23,6 +24,7 @@ Rectangle {
   }
 
   MouseArea {
+    id: clockMouse
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor

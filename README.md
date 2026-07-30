@@ -1,20 +1,46 @@
 # dotfiles
 
-You can find all configs in the .config folder.
+Configs live under [`.config/`](.config/). On a new machine I clone this repo to
+`~/.dotfiles` and symlink the bits I want into `~/.config`.
 
 ## Screenshots
-<img width="2557" height="1440" alt="image" src="https://github.com/user-attachments/assets/ffe6bd1f-bbf7-4aea-ac57-d86820a0c78d" />
+TODO
 
-<img width="729" height="390" alt="image" src="https://github.com/user-attachments/assets/27ad9fbe-c246-42aa-a04f-cb212d72d572" />
+## Install (symlink)
 
-## Notes
-- For fish shell to work properly you need to install these plugins
+```fish
+git clone https://github.com/nyxiereal/dotfiles.git ~/.dotfiles
+mkdir -p ~/.config
+
+# Apps to link (edit this list per machine)
+set apps fish kitty fastfetch nvim quickshell wofi mako eza qt5ct qt6ct Kvantum opencode
+
+for app in $apps
+    set -l src ~/.dotfiles/.config/$app
+    set -l dst ~/.config/$app
+    if test -e $dst -o -L $dst
+        echo "skip $app (already exists at $dst) — move it aside first"
+        continue
+    end
+    ln -s $src $dst
+    echo "linked $app"
+end
+
+# Loose files (not directories)
+ln -sf ~/.dotfiles/.config/hyfetch.json ~/.config/hyfetch.json
 ```
+
+After linking fish, install Fisher plugins (below), then open a new terminal.
+
+To update later: `cd ~/.dotfiles && git pull`.
+
+## Fish plugins
+
+```fish
 curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-  fisher install franciscolourenco/done
-  fisher install PatrickF1/fzf.fish
-  fisher install jorgebucaran/autopair.fish
-  fisher install nickeb96/puffer-fish
-  fisher install IlanCosman/tide@v6
-  tide configure --auto --style=Rainbow --prompt_colors='True color' --show_time=No --rainbow_prompt_separators=Slanted --powerline_prompt_heads=Slanted --powerline_prompt_tails=Slanted --powerline_prompt_style='Two lines, character' --prompt_connection=Solid --powerline_right_prompt_frame=No --prompt_connection_andor_frame_color=Dark --prompt_spacing=Sparse --icons='Many icons' --transient=No
+fisher install franciscolourenco/done
+fisher install jorgebucaran/autopair.fish
+fisher install nickeb96/puffer-fish
+fisher install IlanCosman/tide@v6
+tide configure --auto --style=Rainbow --prompt_colors='True color' --show_time=No --rainbow_prompt_separators=Slanted --powerline_prompt_heads=Slanted --powerline_prompt_tails=Slanted --powerline_prompt_style='Two lines, character' --prompt_connection=Solid --powerline_right_prompt_frame=No --prompt_connection_andor_frame_color=Dark --prompt_spacing=Sparse --icons='Many icons' --transient=No
 ```

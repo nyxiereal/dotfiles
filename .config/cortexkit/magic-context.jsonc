@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cortexkit/magic-context/master/assets/magic-context.schema.json",
+  "enabled": true,
+
+  "historian": {
+    "model": "opencode-go/deepseek-v4-flash",
+    "fallback_models": ["github-copilot/gpt-5.4-mini"]
+  }
+}

@@ -1,5 +1,4 @@
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Layouts
@@ -18,10 +17,10 @@ PopupWindow {
 
   property bool open: false
   property bool pinned: false
-  property bool focusGrabReady: false
   property var peakHistory: [0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06]
 
-  visible: open
+  visible: false
+  grabFocus: !pinned
   color: "transparent"
   implicitWidth: compact ? 350 : 400
   implicitHeight: Math.min(content.implicitHeight + 24, screenHeight - barHeight - 32)
@@ -30,13 +29,14 @@ PopupWindow {
   anchor.rect.x: popupX
   anchor.rect.y: barHeight + 8
 
+  onOpenChanged: {
+    if (visible !== open) visible = open;
+  }
+
   onVisibleChanged: {
     if (visible) {
       shell.refreshMonitorAudioRoutes();
-      focusGrabReady = false;
-      focusGrabDelay.restart();
     } else {
-      focusGrabReady = false;
       if (open) open = false;
     }
   }
@@ -56,18 +56,6 @@ PopupWindow {
       history.push(Math.max(0.06, Math.min(1, Math.sqrt(outputPeakMonitor.peak))));
       popup.peakHistory = history;
     }
-  }
-
-  HyprlandFocusGrab {
-    active: popup.focusGrabReady && popup.visible && !popup.pinned
-    windows: [popup, popup.barWindow]
-    onCleared: if (!popup.pinned) popup.open = false
-  }
-
-  Timer {
-    id: focusGrabDelay
-    interval: 120
-    onTriggered: popup.focusGrabReady = popup.visible
   }
 
   Rectangle {

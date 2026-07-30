@@ -1,5 +1,4 @@
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Services.Pipewire
 import QtQuick
 import QtQuick.Layouts
@@ -10,12 +9,11 @@ PanelWindow {
   required property var shell
   required property var screenData
 
-  property var hyprMonitor: Hyprland.monitorFor(screenData)
   property var player: shell.bestPlayer()
   property var sink: Pipewire.defaultAudioSink
   property var mic: Pipewire.defaultAudioSource
   property string mediaText: shell.mediaLabel(player)
-  property string activeWindowTitle: shell.windowTitleForMonitor(hyprMonitor)
+  property string activeWindowTitle: shell.windowTitleForScreen(screenData)
   property bool tiny: screenData.width < 1150
   property bool compact: screenData.width < 1650
   property int barHeight: Math.max(40, Math.min(48, Math.round(screenData.height * 0.026)))
@@ -28,6 +26,16 @@ PanelWindow {
   function audioPopupX() {
     var anchorX = bar.itemPosition(audioModule).x + audioModule.width - audioPopup.width;
     return Math.max(bar.outerMargin, Math.min(bar.width - audioPopup.width - bar.outerMargin, anchorX));
+  }
+
+  function batteryPopupX() {
+    var anchorX = bar.itemPosition(systemStatusModule).x + systemStatusModule.width - batteryPopup.width;
+    return Math.max(bar.outerMargin, Math.min(bar.width - batteryPopup.width - bar.outerMargin, anchorX));
+  }
+
+  function calendarPopupX() {
+    var anchorX = bar.itemPosition(clockModule).x + clockModule.width - calendarPopup.width;
+    return Math.max(bar.outerMargin, Math.min(bar.width - calendarPopup.width - bar.outerMargin, anchorX));
   }
 
   screen: screenData
@@ -102,10 +110,29 @@ PanelWindow {
           shell: bar.shell
           barWindow: bar
           Layout.alignment: Qt.AlignVCenter
-          onTogglePopup: audioPopup.open = !audioPopup.open
+          onTogglePopup: {
+            batteryPopup.dismiss();
+            audioPopup.open = !audioPopup.open;
+          }
+        }
+
+        SystemStatusModule {
+          id: systemStatusModule
+          shell: bar.shell
+          barWindow: bar
+          Layout.alignment: Qt.AlignVCenter
+          onToggleBatteryPopup: {
+            audioPopup.open = false;
+            if (batteryPopup.open) {
+              batteryPopup.dismiss();
+            } else {
+              batteryPopup.open = true;
+            }
+          }
         }
 
         ClockModule {
+          id: clockModule
           shell: bar.shell
           barWindow: bar
           Layout.alignment: Qt.AlignVCenter
@@ -130,5 +157,25 @@ PanelWindow {
     screenHeight: bar.screenData.height
     barHeight: bar.barHeight
     popupX: bar.audioPopupX()
+  }
+
+  BatteryPopup {
+    id: batteryPopup
+    shell: bar.shell
+    barWindow: bar
+    battery: bar.shell.battery
+    anchorHovered: systemStatusModule.batteryHovered
+    barHeight: bar.barHeight
+    popupX: bar.batteryPopupX()
+  }
+
+  CalendarPopup {
+    id: calendarPopup
+    shell: bar.shell
+    barWindow: bar
+    triggerHovered: clockModule.hovered
+    screenWidth: bar.screenData.width
+    barHeight: bar.barHeight
+    popupX: bar.calendarPopupX()
   }
 }

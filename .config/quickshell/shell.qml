@@ -1,8 +1,9 @@
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
+import Quickshell.Wayland
 import Quickshell.Services.Mpris
 import Quickshell.Services.Pipewire
+import Quickshell.Services.UPower
 import QtQuick
 import "modules"
 
@@ -32,6 +33,11 @@ ShellRoot {
   property string driveText: ""
   property string driveTooltip: ""
   property string driveClass: "hidden"
+  property var battery: UPower.displayDevice
+  property bool hasLaptopBattery: !!(battery && battery.ready && battery.isLaptopBattery)
+  property var batteryStats: ({})
+  property int brightnessPercentage: -1
+  property string brightnessDevice: ""
   property bool easyEffectsRunning: false
   property string audioRouteScript: Quickshell.env("HOME") + "/.config/quickshell/audio-route"
   property string preferredMonitorAudioOutput: "Q27G42XE"
@@ -91,6 +97,78 @@ ShellRoot {
     }
   }
 
+  function parseBrightnessOutput(output) {
+    var fields = output.trim().split(",");
+    if (fields.length < 5) {
+      brightnessPercentage = -1;
+      brightnessDevice = "";
+      return;
+    }
+
+    brightnessDevice = fields[0];
+    brightnessPercentage = Math.max(0, Math.min(100, parseInt(fields[3])));
+  }
+
+  function parseBatteryStats(output) {
+    var stats = {};
+    var lines = output.trim().split("\n");
+    for (var i = 0; i < lines.length; i++) {
+      var separator = lines[i].indexOf("=");
+      if (separator > 0) {
+        stats[lines[i].slice(0, separator)] = lines[i].slice(separator + 1).trim();
+      }
+    }
+    batteryStats = stats;
+  }
+
+  function refreshBatteryStats() {
+    if (!hasLaptopBattery) {
+      return;
+    }
+
+    batteryStatsCheck.running = true;
+  }
+
+  function batteryIcon(device) {
+    if (!device || !device.ready) {
+      return "󰂑";
+    }
+
+    if (!UPower.onBattery) {
+      return "󰂄";
+    }
+
+    var level = Math.round(device.percentage * 10);
+    var icons = ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"];
+    return icons[Math.max(0, Math.min(10, level))];
+  }
+
+  function batteryPercentage(device) {
+    return device && device.ready ? Math.round(device.percentage * 100) : -1;
+  }
+
+  function batteryLabel(device) {
+    if (!device || !device.ready) {
+      return "--% 󰂑";
+    }
+
+    return batteryPercentage(device) + "% " + batteryIcon(device);
+  }
+
+  function adjustBrightness(delta) {
+    if (!hasLaptopBattery || brightnessDevice.length === 0) {
+      return;
+    }
+
+    brightnessPercentage = Math.max(0, Math.min(100, brightnessPercentage + (delta > 0 ? 2 : -2)));
+    Quickshell.execDetached([
+      "brightnessctl",
+      "--device", brightnessDevice,
+      "set", delta > 0 ? "2%+" : "2%-"
+    ]);
+    brightnessRefreshAfterAction.restart();
+  }
+
   function workspaceLabel(workspace) {
     if (workspace.name && workspace.name !== String(workspace.id)) {
       return workspace.name;
@@ -99,13 +177,18 @@ ShellRoot {
     return String(workspace.id);
   }
 
-  function windowTitleForMonitor(monitor) {
-    var toplevel = Hyprland.activeToplevel;
+  function windowTitleForScreen(screen) {
+    var toplevel = ToplevelManager.activeToplevel;
     if (!toplevel || !toplevel.title) {
       return "";
     }
 
-    if (monitor && toplevel.monitor && toplevel.monitor.name !== monitor.name) {
+    if (screen && toplevel.screens && toplevel.screens.length > 0) {
+      for (var i = 0; i < toplevel.screens.length; i++) {
+        if (toplevel.screens[i] === screen || toplevel.screens[i].name === screen.name) {
+          return toplevel.title;
+        }
+      }
       return "";
     }
 
@@ -318,6 +401,29 @@ ShellRoot {
     }
   }
 
+  Process {
+    id: brightnessCheck
+    command: ["brightnessctl", "--machine-readable", "info"]
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: root.parseBrightnessOutput(text)
+    }
+  }
+
+  Process {
+    id: batteryStatsCheck
+    command: [
+      "sh", "-c",
+      "for name in status capacity energy_now energy_full energy_full_design power_now cycle_count voltage_now manufacturer model_name; do path=/sys/class/power_supply/BAT0/$name; if [ -r \"$path\" ]; then printf '%s=' \"$name\"; cat \"$path\"; fi; done"
+    ]
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: root.parseBatteryStats(text)
+    }
+  }
+
   Timer {
     interval: 10000
     running: true
@@ -340,6 +446,22 @@ ShellRoot {
   }
 
   Timer {
+    interval: 250
+    running: root.hasLaptopBattery
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: brightnessCheck.running = true
+  }
+
+  Timer {
+    interval: 5000
+    running: root.hasLaptopBattery
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: batteryStatsCheck.running = true
+  }
+
+  Timer {
     id: driveRefreshAfterAction
     interval: 800
     onTriggered: driveCheck.running = true
@@ -355,6 +477,12 @@ ShellRoot {
     id: monitorAudioRoutesRefreshAfterAction
     interval: 1000
     onTriggered: monitorAudioRoutesCheck.running = true
+  }
+
+  Timer {
+    id: brightnessRefreshAfterAction
+    interval: 50
+    onTriggered: brightnessCheck.running = true
   }
 
   Variants {
