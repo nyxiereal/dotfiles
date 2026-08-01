@@ -1,3 +1,9 @@
 .config/gtk-3.0/bookmarks
 .config/gwe/
 **/node_modules/
+
+# Fish plugins, universal variables, and machine-local secrets
+.config/fish/completions/
+.config/fish/conf.d/
+.config/fish/functions/
+.config/fish/fish_variables*

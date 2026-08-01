@@ -10,6 +10,7 @@ set -gx DEVKITPRO /opt/devkitpro
 set -gx DEVKITARM /opt/devkitpro/devkitARM
 set -gx DEVKITPPC /opt/devkitpro/devkitPPC
 set -gx OPENCODE_EXPERIMENTAL_WEBSOCKETS true
+set -U fish_key_bindings fish_default_key_bindings
 
 # Latest installed NDK - Gradle/Flutter use the project's ndkVersion;
 # ANDROID_NDK_HOME is for ndk-build / CMake / tooling that still expect it.
@@ -20,6 +21,7 @@ end
 
 fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.bun/bin
+fish_add_path -g -p ~/development/flutter/bin
 test -d $HOME/Applications/depot_tools; and fish_add_path $HOME/Applications/depot_tools
 test -d "$ANDROID_HOME/platform-tools"; and fish_add_path "$ANDROID_HOME/platform-tools"
 
@@ -74,9 +76,11 @@ function unpackall --description "Unpack archives in cwd into their own folders"
     end
 end
 
-function updateall --description "Upgrade Flutter + system packages"
-    flutter upgrade
+function updateall --description "Upgrade Flutter + system packages, then shut down"
+    sudo true
+    and flutter upgrade
     and yay --noconfirm
+    and sudo shutdown now
 end
 
 function qs-restart --description "Restart quickshell"
