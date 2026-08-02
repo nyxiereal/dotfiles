@@ -61,6 +61,8 @@
           }
         },
         "gpt-5.6-sol": {
+          "reasoningSummary": "auto",
+          "include": ["reasoning.encrypted_content"],
           "limit": {
             "context": 500000,
             "input": 372000,
@@ -116,7 +118,7 @@
     "httptoolkit": {
       "type": "local",
       "command": [
-        "/opt/HTTP Toolkit/resources/httptoolkit-mcp"
+        "/opt/httptoolkit/resources/httptoolkit-mcp"
       ],
       "enabled": true
     },
@@ -139,10 +141,10 @@
   // Agent configuration
   "agent": {
     "general": {
-      "model": "openai/gpt-5.6-sol"
+      "model": "openai/gpt-5.6-luna"
     },
     "explore": {
-      "model": "openai/gpt-5.6-sol"
+      "model": "openai/gpt-5.6-luna"
     }
   },
 

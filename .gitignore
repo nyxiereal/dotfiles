@@ -7,3 +7,4 @@
 .config/fish/conf.d/
 .config/fish/functions/
 .config/fish/fish_variables*
+.config/opencode/package-lock.json
