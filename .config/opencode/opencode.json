@@ -62,7 +62,9 @@
         },
         "gpt-5.6-sol": {
           "reasoningSummary": "auto",
-          "include": ["reasoning.encrypted_content"],
+          "include": [
+            "reasoning.encrypted_content"
+          ],
           "limit": {
             "context": 500000,
             "input": 372000,
@@ -151,14 +153,16 @@
   "permission": {
     "external_directory": {
       "/home/nyx/.gradle/caches/**": "allow",
-      "/tmp/*": "allow",
-      "/home/nyx/Android/Sdk/platforms/*": "allow"
+      "/tmp/**": "allow",
+      "/home/nyx/Android/Sdk/platforms/**": "allow",
+      "/home/nyx/android/**": "allow",
+      "/home/nyx/android-signing/**": "allow"
     }
   },
 
   // Plugins
   "plugin": [
-    "@cortexkit/opencode-magic-context",
+    "@cortexkit/opencode-magic-context@latest",
     "./plugins/cursor-completion-sound.ts"
   ],
 
