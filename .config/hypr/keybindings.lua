@@ -52,6 +52,8 @@ hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"))
 
 -- Screenshots, lock, color picker, etc.
 hl.bind("Print", hl.dsp.exec_cmd("grimblast --freeze --notify copy area"))
+hl.bind("ALT + Print", hl.dsp.exec_cmd("grimblast --freeze --notify copy area"))
+hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("grimblast --freeze --notify copy screen"))
 hl.bind(mainMod .. " + CONTROL + R", hl.dsp.exec_cmd("grimblast --freeze --notify --cursor copy active"))
 hl.bind(mainMod .. " + CONTROL + T", hl.dsp.exec_cmd("grimblast --freeze --notify --cursor copy output"))
 hl.bind(mainMod .. " + CONTROL + L", hl.dsp.exec_cmd("swaylock -c 000000"))

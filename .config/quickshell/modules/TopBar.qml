@@ -93,12 +93,6 @@ PanelWindow {
         spacing: bar.gap
         Layout.alignment: Qt.AlignVCenter
 
-        DriveModule {
-          shell: bar.shell
-          barWindow: bar
-          Layout.alignment: Qt.AlignVCenter
-        }
-
         MediaModule {
           shell: bar.shell
           barWindow: bar

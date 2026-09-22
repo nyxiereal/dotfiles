@@ -29,10 +29,6 @@ ShellRoot {
 
   property string fontFamily: "FiraCode Nerd Font"
   property int fontPointSize: 9
-  property string waybarDir: Quickshell.env("HOME") + "/.config/waybar"
-  property string driveText: ""
-  property string driveTooltip: ""
-  property string driveClass: "hidden"
   property var battery: UPower.displayDevice
   property bool hasLaptopBattery: !!(battery && battery.ready && battery.isLaptopBattery)
   property var batteryStats: ({})
@@ -45,27 +41,6 @@ ShellRoot {
   property var monitorAudioRoutes: []
   property string monitorAudioRouteError: ""
   property alias clockService: clock
-
-  function parseDriveOutput(output) {
-    var raw = output.trim();
-    if (raw.length === 0) {
-      driveText = "";
-      driveTooltip = "";
-      driveClass = "hidden";
-      return;
-    }
-
-    try {
-      var data = JSON.parse(raw);
-      driveText = data.text || "";
-      driveTooltip = data.tooltip || "";
-      driveClass = data.class || "hidden";
-    } catch (error) {
-      driveText = "";
-      driveTooltip = raw;
-      driveClass = "hidden";
-    }
-  }
 
   function parseMonitorAudioRoutes(output) {
     var raw = output.trim();
@@ -339,11 +314,6 @@ ShellRoot {
     monitorAudioRoutesCheck.running = true;
   }
 
-  function performDriveAction(action) {
-    Quickshell.execDetached([waybarDir + "/drive-detect", action]);
-    driveRefreshAfterAction.restart();
-  }
-
   function toggleEasyEffects() {
     if (easyEffectsRunning) {
       Quickshell.execDetached(["sh", audioRouteScript, "stop-easyeffects"]);
@@ -369,16 +339,6 @@ ShellRoot {
 
   PwObjectTracker {
     objects: root.trackedAudioNodes()
-  }
-
-  Process {
-    id: driveCheck
-    command: [root.waybarDir + "/drive-detect"]
-    running: true
-
-    stdout: StdioCollector {
-      onStreamFinished: root.parseDriveOutput(text)
-    }
   }
 
   Process {
@@ -425,13 +385,6 @@ ShellRoot {
   }
 
   Timer {
-    interval: 10000
-    running: true
-    repeat: true
-    onTriggered: driveCheck.running = true
-  }
-
-  Timer {
     interval: 3000
     running: true
     repeat: true
@@ -459,12 +412,6 @@ ShellRoot {
     repeat: true
     triggeredOnStart: true
     onTriggered: batteryStatsCheck.running = true
-  }
-
-  Timer {
-    id: driveRefreshAfterAction
-    interval: 800
-    onTriggered: driveCheck.running = true
   }
 
   Timer {

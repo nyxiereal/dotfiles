@@ -5,7 +5,7 @@ set -gx CHROME_EXECUTABLE thorium-browser
 set -gx PROTON_USE_NTSYNC 1
 set -gx PROTON_ENABLE_WAYLAND 1
 set -gx JAVA_HOME /usr/lib/jvm/java-21-temurin
-set -gx UV_CACHE_DIR /mnt/nyaboom/.uv
+set -gx UV_CACHE_DIR /home/nyx/.uv
 set -gx DEVKITPRO /opt/devkitpro
 set -gx DEVKITARM /opt/devkitpro/devkitARM
 set -gx DEVKITPPC /opt/devkitpro/devkitPPC

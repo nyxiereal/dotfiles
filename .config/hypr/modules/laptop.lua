@@ -10,6 +10,7 @@ hl.monitor({
 hl.on("hyprland.start", function()
   -- Laptop-specific startup apps
   hl.exec_cmd("python /home/nyx/.config/hypr/monitor-switcher.py")
+  hl.exec_cmd("swayidle -w timeout 300 'swaylock -f -c 000000' before-sleep 'swaylock -f -c 000000'")
 end)
 
 -- Laptop-only keybindings

@@ -1,6 +1,6 @@
 return {
   defaults = { lazy = true },
-  install = { colorscheme = { "catppuccin-mocha" } },
+  install = { colorscheme = { "nvchad" } },
 
   ui = {
     icons = {
@@ -28,7 +28,6 @@ return {
         "tar",
         "tarPlugin",
         "rrhelper",
-        "spellfile_plugin",
         "vimball",
         "vimballPlugin",
         "zip",

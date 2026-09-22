@@ -1,2 +1,3 @@
 fish/functions/__gitnow_is_number.fish
 lazy-lock.json
+spell/*.spl

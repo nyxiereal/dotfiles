@@ -55,12 +55,8 @@ hl.config({
 hl.on("hyprland.start", function()
     hl.exec_cmd("hyprsunset -t 3000")
     hl.exec_cmd("hyprctl setcursor catppuccin-mocha-pink-cursors 24")
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
     hl.exec_cmd("quickshell --daemonize --no-duplicate")
     hl.exec_cmd("mako")
-    hl.exec_cmd("~/projects/balaloader/target/release/balaloader serve")
-    hl.exec_cmd("hash dbus-update-activation-environment 2>/dev/null &")
-    hl.exec_cmd("dbus-update-activation-environment &")
 end)
 
 -- Appearance & behavior
@@ -97,7 +93,7 @@ hl.config({
     misc = {
         force_default_wallpaper = 0,
         disable_hyprland_logo = true,
-        vrr = 1,
+        vrr = _G.is_desktop and 0 or 1,
     },
     input = {
         kb_layout = "pl",
